@@ -35,7 +35,7 @@
                 <configuration>
                     <!-- *** สำคัญ: กำหนด Main Class ที่นี่ *** -->
                     <!-- ตรวจสอบให้แน่ใจว่า 'com.example.App' ตรงกับ package และชื่อคลาสของคุณ -->
-                    <mainClass>com.example.App</mainClass>
+                    <mainClass>First_project.democlass</mainClass>
                 </configuration>
             </plugin>
         </plugins>
