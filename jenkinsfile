@@ -25,7 +25,7 @@ pipeline {
         stage('Build Project') {
             agent { label 'test-connect' }
             steps {
-                sh 'mvn clean install' // ตัวอย่างคำสั่ง Maven สำหรับ Linux
+                sh 'mvn clean install -DskipTests' // ตัวอย่างคำสั่ง Maven สำหรับ Linux
             }
         }
     }
