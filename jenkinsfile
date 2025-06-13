@@ -12,7 +12,7 @@ pipeline {
 
         stage('Checkout Source Code') {
             agent {
-                label 'test-connect' // <<< สำคัญมาก! กำหนดให้ขั้นตอนนี้รันบน Agent Linux ของคุณ
+                label 'centos9-Linux' // <<< สำคัญมาก! กำหนดให้ขั้นตอนนี้รันบน Agent Linux ของคุณ
             }
             steps {
                 // คำสั่ง git นี้จะถูกรันบนเครื่อง 'test-connect' ที่เป็น Linux
