@@ -1,31 +1,34 @@
 pipeline {
-    agent none // กำหนดว่า Pipeline โดยรวมยังไม่มี Agent เริ่มต้น
+    agent none // ไม่กำหนด Agent เริ่มต้นสำหรับ Pipeline ทั้งหมด
 
     stages {
-        // อาจมี stage แรกๆ ที่รันบน Master ถ้าจำเป็น (เช่น ดึง Jenkinsfile)
         stage('Initialize') {
-            agent any // หรือ agent { label 'master' } ถ้าต้องการให้รันบน Master ชัดเจน
+            agent {
+                label 'centos9-Linux' // หรือ 'master' ถ้าคุณต้องการให้ Jenkinsfile ดึงบน Master ก่อน
+            }
             steps {
-                echo 'Initializing environment on Jenkins Master...'
+                // คำสั่ง 'checkout scm' (ซึ่งมักจะเป็นแบบ implicit หรือระบุใน Jenkinsfile สำหรับตัว Pipeline เอง)
+                // ยังคงทำงานได้ดีและใช้ '/usr/bin/git' บน test-connect
+                echo 'Initializing environment on Jenkins Master...' // (ข้อความนี้บอก Master แต่การ checkout เกิดบน Agent)
             }
         }
 
         stage('Checkout Source Code') {
             agent {
-                label 'centos9-Linux' // <<< สำคัญมาก! กำหนดให้ขั้นตอนนี้รันบน Agent Linux ของคุณ
+                label 'centos9-Linux' // ตรวจสอบให้แน่ใจว่า Stage นี้รันบน Linux Agent
             }
             steps {
-                // คำสั่ง git นี้จะถูกรันบนเครื่อง 'test-connect' ที่เป็น Linux
-                git url: 'https://github.com/Stamp7ven/Maven-Projects.git'
+                // *** จุดสำคัญที่ต้องแก้ไขคือตรงนี้ ***
+                // ระบุอย่างชัดเจนให้คำสั่ง 'git' ใช้ Git Tool ชื่อ 'git-on-linux-agent'
+                git tool: 'git-on-linux-agent', url: 'https://github.com/Stamp7ven/Maven-Projects.git', branch: 'main' // เปลี่ยน 'main' ถ้า branch คุณเป็นชื่ออื่น
                 echo 'Source code checked out successfully on test-connect.'
             }
         }
 
-        // เพิ่มขั้นตอนอื่นๆ เช่น Build, Test, Deploy โดยให้รันบน Agent 'test-connect'
         stage('Build Project') {
-            agent { label 'test-connect' }
+            agent { label 'centos9-Linux' } // กำหนดให้ขั้นตอนนี้รันบน Agent Linux ด้วย
             steps {
-                sh 'mvn clean install -DskipTests' // ตัวอย่างคำสั่ง Maven สำหรับ Linux
+                sh 'mvn clean install -DskipTests' // ตัวอย่างคำสั่ง Maven
             }
         }
     }
