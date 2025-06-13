@@ -20,7 +20,7 @@ pipeline {
             steps {
                 // *** จุดสำคัญที่ต้องแก้ไขคือตรงนี้ ***
                 // ระบุอย่างชัดเจนให้คำสั่ง 'git' ใช้ Git Tool ชื่อ 'git-on-linux-agent'
-                git tool: 'git-on-linux-agent', url: 'https://github.com/Stamp7ven/Maven-Projects.git', branch: 'main' // เปลี่ยน 'main' ถ้า branch คุณเป็นชื่ออื่น
+                git tool: 'git-on-linux-agent', url: 'https://github.com/Stamp7ven/Maven-Projects.git', branch: 'main'
                 echo 'Source code checked out successfully on test-connect.'
             }
         }
