@@ -1,74 +1,37 @@
-// Jenkinsfile (Declarative Pipeline)
 pipeline {
-    // กำหนดให้ Pipeline นี้รันบน Agent ที่มี Label 'docker-agent'
-    // ซึ่งคือ VM Agent ที่เราตั้งค่าไว้ในขั้นตอนก่อนหน้านี้
-    agent {
-        label 'centos9-Linux'
-    }
+    agent none // กำหนดว่า Pipeline โดยรวมยังไม่มี Agent เริ่มต้น
 
     stages {
-        stage('Checkout Code') {
+        // อาจมี stage แรกๆ ที่รันบน Master ถ้าจำเป็น (เช่น ดึง Jenkinsfile)
+        stage('Initialize') {
+            agent any // หรือ agent { label 'master' } ถ้าต้องการให้รันบน Master ชัดเจน
             steps {
-                echo "Checking out code..."
-                checkout scm // ดึงโค้ดจาก Git Repository
-                echo "Code checked out to ${WORKSPACE}"
+                echo 'Initializing environment on Jenkins Master...'
             }
         }
 
-        stage('Build with Maven in Docker Container') {
+        stage('Checkout Source Code') {
             agent {
-                // Stage นี้จะรันภายใน Docker Container 'maven:3.9.6-eclipse-temurin-17-alpine'
-                // บน Jenkins Agent (docker-agent)
-                docker {
-                    image 'maven:3.9.6-eclipse-temurin-17-alpine' // ใช้ Docker Image ที่มี Maven และ JDK
-                    // Mount Maven local repository เพื่อ Cache dependencies
-                    // ทำให้ Build ครั้งถัดไปเร็วขึ้น
-                    args '-v $HOME/.m2:/root/.m2'
-                }
+                label 'test-connect' // <<< สำคัญมาก! กำหนดให้ขั้นตอนนี้รันบน Agent Linux ของคุณ
             }
             steps {
-                echo "Building project with Maven inside Docker..."
-                // คำสั่ง Maven นี้จะรัน 'ภายใน' Docker Container
-                sh 'mvn clean install'
-                sh 'ls -l target/' // ตรวจสอบว่ามีไฟล์ JAR ถูกสร้างขึ้น
-                echo "Build complete."
+                // คำสั่ง git นี้จะถูกรันบนเครื่อง 'test-connect' ที่เป็น Linux
+                git url: 'https://github.com/Stamp7ven/Maven-Projects.git'
+                echo 'Source code checked out successfully on test-connect.'
             }
         }
 
-        stage('Run App in Docker Container (for Testing)') {
-            agent {
-                // Stage นี้จะสร้าง Docker Image สำหรับรันแอปพลิเคชันจาก Dockerfile ของโปรเจกต์
-                // แล้วรัน Container จาก Image ที่สร้างนั้นเพื่อทดสอบ
-                dockerfile true
-                // ถ้า Dockerfile ของคุณอยู่ใน subfolder เช่น 'docker/' ให้ใช้:
-                // dockerfile { dir 'docker' }
-            }
+        // เพิ่มขั้นตอนอื่นๆ เช่น Build, Test, Deploy โดยให้รันบน Agent 'test-connect'
+        stage('Build Project') {
+            agent { label 'test-connect' }
             steps {
-                echo "Building application image from Dockerfile and running for testing..."
-                // คำสั่งนี้จะรัน 'ภายใน' Container ที่สร้างจาก Dockerfile ของคุณ
-                // และแสดงผลลัพธ์จาก App.java (หรือ democlass.java ที่คุณแก้ไขแล้ว)
-                sh 'java -jar /app/my-app.jar'
-                echo "Application ran successfully in container."
+                sh 'mvn clean install' // ตัวอย่างคำสั่ง Maven สำหรับ Linux
             }
         }
     }
-
     post {
         always {
-            // ทำงานเสมอเมื่อ Pipeline สิ้นสุด ไม่ว่าจะสำเร็จหรือล้มเหลว
             echo "Pipeline finished. Build status: ${currentBuild.result}"
-        }
-        failure {
-            // ทำงานเมื่อ Pipeline ล้มเหลว
-            echo "Pipeline failed. Sending notification..."
-            // *** คุณสามารถเปลี่ยน 'your_email@example.com' เป็นอีเมลของคุณได้ ***
-            // mail to: 'your_email@example.com',
-            //      subject: "Jenkins Build FAILED: ${env.JOB_NAME} - ${env.BUILD_NUMBER}",
-            //      body: "Build ${env.BUILD_URL} for ${env.JOB_NAME} #${env.BUILD_NUMBER} failed. Check console output: ${env.BUILD_URL}/console"
-        }
-        success {
-            // ทำงานเมื่อ Pipeline สำเร็จ
-            echo "Pipeline succeeded! Ready for deployment."
         }
     }
 }
