@@ -13,4 +13,31 @@
 </dependency>
 
   </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Plugin สำหรับการคอมไพล์โค้ด Java -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+
+            <!-- Plugin สำหรับการรันคลาส Java โดยตรง -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <!-- *** สำคัญ: กำหนด Main Class ที่นี่ *** -->
+                    <!-- ตรวจสอบให้แน่ใจว่า 'com.example.App' ตรงกับ package และชื่อคลาสของคุณ -->
+                    <mainClass>com.example.App</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
